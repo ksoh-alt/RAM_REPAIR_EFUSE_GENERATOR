@@ -1,6 +1,7 @@
 import streamlit as st
-
+import tkinter as tk
 st.title("This is the RAM REPAIR GENERATOR")
-st.write(
-    "I will use this to build webapps to generate EFUSE data for RAM REPAIR"
-)
+
+root = tk.Tk()
+root.title("Text Editor")
+root.geometry("900x600")
