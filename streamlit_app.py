@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("🎈 My new app")
+st.title("This is the RAM REPAIR GENERATOR")
 st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
+    "I will use this to build webapps to generate EFUSE data for RAM REPAIR"
 )
