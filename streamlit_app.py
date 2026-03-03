@@ -208,5 +208,3 @@ st.write(
     "We compute contrast ratio using WCAG relative luminance. A ratio of **4.5:1** is generally recommended for normal text, "
     "and **3:1** for large text."
 )
-
-``
