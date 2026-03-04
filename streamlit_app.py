@@ -4,7 +4,7 @@
 # and patterns you will use in most apps.
 #
 # How to run:
-#   1) pip install streamlit pandas numpy matplotlib
+#   1) pip install streamlit pandas numpy
 #   2) streamlit run streamlit_beginner_guide.py
 # -------------------------------------------------------------
 
@@ -18,7 +18,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
 
 # -------------------------------------------------------------
@@ -282,15 +281,6 @@ elif section == "Charts":
     st.line_chart(chart_df.set_index("x"), use_container_width=True)
     st.area_chart(chart_df.set_index("x"), use_container_width=True)
     st.bar_chart(chart_df.set_index("x")["y1"], use_container_width=True)
-
-    st.subheader("Matplotlib example")
-    fig, ax = plt.subplots()
-    x = np.linspace(0, 2*np.pi, 200)
-    ax.plot(x, np.sin(x), label="sin")
-    ax.plot(x, np.cos(x), label="cos")
-    ax.set_title("Matplotlib in Streamlit")
-    ax.legend()
-    st.pyplot(fig, clear_figure=True)
 
     st.subheader("Map (optional)")
     try:
