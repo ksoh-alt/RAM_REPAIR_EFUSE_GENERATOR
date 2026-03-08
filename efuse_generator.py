@@ -47,15 +47,28 @@ except Exception:
         pass
 
 st.sidebar.write("---")
-st.sidebar.caption("This app showcases many core Streamlit features in a single file.")
+st.sidebar.caption("This app helps generate efuse hex code for Array Ram Repair Simulation.")
 
 # -------------------------------------------------------------
 # SECTION: EFUSE Generator
 # -------------------------------------------------------------
 if section == "EFUSE Generator":
     st.title("EFUSE Generator")
-    st.header("Use this apps to generate ARRAY Ram Efuse Hex for repair simulation")
+    #st.header("Use this apps to generate ARRAY Ram Efuse Hex for repair simulation")
   
     st.subheader("Memory IPs")
-    sb = st.selectbox("Select one", ["LSMMBIST", "IOSSMCFG", "IOSSMCAL Serial Channel 0", "IOSSMCAL Serial Channel 1", "CSSM HIP2C", "CSSM CNT", "CSSM DVP"], index=1)
-    st.write("Selectbox:", sb)
+    sb = st.selectbox("Select one", ["LSMMBIST", "IOSSMMBIST", "CSSMMBIST"], index=1)
+    st.write("IP(s):", sb)
+
+
+    if sb == "LSMMBIST":
+        st.subheader("LSMMBIST")
+
+    elif sb == "IOSSMMBIST":
+        st.subheader("IOSSMBIST")
+        iossm_choice = st.radio("Pick one", ["IOSSMCFG", "IOSSMCAL Serial Channel 0", "IOSSMCAL Serial Channel 1"], index=0)
+
+    elif sb == "CSSMMBIST":
+        st.subheader("CSSMMBIST")
+        cssm_choice = st.radio("Pick one", ["CSSM HIP2C", "CSSM CNT", "CSSM DVP"], index=0)
+        
