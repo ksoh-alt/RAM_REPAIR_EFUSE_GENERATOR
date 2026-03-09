@@ -71,7 +71,10 @@ if section == "EFUSE Generator":
         st.subheader("RAMID")
         if uploaded is not None:
             df_lsm = df[df["MemType"] == "LSM"]
-            st.dataframe(df_lsm)
+            cjtagid_lsm = df_lsm["CJTAGID"].dropna().unique().tolist()
+            sb_cjtagidlsm = st.selectbox("Select CJTAGID", cjtagid_lsm, index=1)
+            df_lsm_cjtagid = df[df_lsm["MemType"] == sb_cjtagidlsm]
+            st.dataframe(df_lsm_cjtagid)
 
     elif sb == "IOSSMMBIST":
         st.subheader("IOSSMBIST")
@@ -82,8 +85,7 @@ if section == "EFUSE Generator":
                 df_iossm = df[df["MemType"] == "IOSSMCFG"]
             else: 
                 df_iossm = df[df["MemType"] == "IOSSMCAL"]
-            if uploaded is not None:
-                st.dataframe(df_iossm)
+            st.dataframe(df_iossm)
         
     elif sb == "CSSMMBIST":
         st.subheader("CSSMMBIST")
@@ -91,5 +93,4 @@ if section == "EFUSE Generator":
         st.subheader("RAMID")
         if uploaded is not None:
             df_cssm = df[df["MemType"] == "CSSM"]
-            if uploaded is not None:
-                st.dataframe(df_cssm)
+            st.dataframe(df_cssm)
