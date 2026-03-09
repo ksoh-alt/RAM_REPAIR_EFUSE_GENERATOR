@@ -250,12 +250,12 @@ if section == "EFUSE Generator":
 
 
 # -------------------------------------------------------------
-# SECTION: EFUSE Generator
+# SECTION: LVLIB Reader
 # -------------------------------------------------------------
 if section == "LVLIB Reader":
     st.title("LVLIB Reader")
     #st.header("Use this apps to generate ARRAY Ram Efuse Hex for repair simulation")
-    st.subheader("Upload the Summary File")
+    
 
     # --------- Parsing ---------
     
@@ -491,8 +491,8 @@ if section == "LVLIB Reader":
         return df[preferred_cols] if not df.empty else df
 
         # (Paste the two functions: parse_summary_file_from_string, flatten_summary_to_df)
-        
-        uploaded = st.file_uploader("Upload summary .txt", type=["txt"])
+        st.subheader("Upload the Summary File")
+        uploaded = st.file_uploader("Upload summary .summary", type=["summary"])
         
         if uploaded:
             raw = uploaded.read()
