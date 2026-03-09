@@ -73,7 +73,7 @@ if section == "EFUSE Generator":
             df_lsm = df[df["MemType"] == "LSM"]
             cjtagid_lsm = df_lsm["CJTAGID"].dropna().unique().tolist()
             sb_cjtagidlsm = st.selectbox("Select CJTAGID", cjtagid_lsm, index=1)
-            df_lsm_cjtagid = df[df_lsm["MemType"] == sb_cjtagidlsm]
+            df_lsm_cjtagid = df_lsm[df_lsm["MemType"] == sb_cjtagidlsm]
             st.dataframe(df_lsm_cjtagid)
 
     elif sb == "IOSSMMBIST":
