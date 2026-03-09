@@ -481,11 +481,11 @@ if section == "Summary File Reader":
         df = pd.DataFrame(rows)
         # Optional: column order
         preferred_cols = [
+            'MemoryID','MemoryModule','MemoryInstance','CollarModuleName','CollarInstance',
+            'ControllerType','BistPort_ID','BistPort_Instance','BistPort_ModuleName',
             'RegionID','RegionType','RegionModuleName',
             'TapController_Instance','TapController_ModuleName',
-            'BistPort_ID','ControllerType','BistPort_Instance','BistPort_ModuleName',
             'BistClkConnection','BistClkFrequency_MHz','ReferenceClock','ReferenceClockFrequency_MHz',
-            'MemoryID','CollarModuleName','MemoryModule','MemoryInstance','CollarInstance',
             'StepIDs','StepCount'
         ]
         return df[preferred_cols] if not df.empty else df
