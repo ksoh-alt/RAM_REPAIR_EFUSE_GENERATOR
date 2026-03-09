@@ -482,9 +482,9 @@ if section == "Summary File Reader":
         # Optional: column order
         preferred_cols = [
             'MemoryID','MemoryModule','MemoryInstance','CollarModuleName','CollarInstance',
-            'ControllerType','BistPort_ID','BistPort_Instance','BistPort_ModuleName',
+            'BistPort_ID','BistPort_Instance','BistPort_ModuleName',
             'RegionID','RegionType','RegionModuleName',
-            'TapController_Instance','TapController_ModuleName',
+            'TapController_Instance','TapController_ModuleName','ControllerType',
             'BistClkConnection','BistClkFrequency_MHz','ReferenceClock','ReferenceClockFrequency_MHz',
             'StepIDs','StepCount'
         ]
