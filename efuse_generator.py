@@ -69,25 +69,27 @@ if section == "EFUSE Generator":
     if sb == "LSMMBIST":
         st.subheader("LSMMBIST")
         st.subheader("RAMID")
-        df_lsm = df[df["MemType"] == "LSM"]
         if uploaded is not None:
+            df_lsm = df[df["MemType"] == "LSM"]
             st.dataframe(df_lsm)
 
     elif sb == "IOSSMMBIST":
         st.subheader("IOSSMBIST")
         iossm_choice = st.radio("Pick one", ["IOSSMCFG", "IOSSMCAL Serial Channel 0", "IOSSMCAL Serial Channel 1"], index=0)
         st.subheader("RAMID")
-        if iossm_choice == "IOSSMCFG":
-            df_iossm = df[df["MemType"] == "IOSSMCFG"]
-        else: 
-            df_iossm = df[df["MemType"] == "IOSSMCAL"]
         if uploaded is not None:
-            st.dataframe(df_iossm)
+            if iossm_choice == "IOSSMCFG":
+                df_iossm = df[df["MemType"] == "IOSSMCFG"]
+            else: 
+                df_iossm = df[df["MemType"] == "IOSSMCAL"]
+            if uploaded is not None:
+                st.dataframe(df_iossm)
         
     elif sb == "CSSMMBIST":
         st.subheader("CSSMMBIST")
         cssm_choice = st.radio("Pick one", ["CSSM HIP2C", "CSSM CNT", "CSSM DVP"], index=0)
         st.subheader("RAMID")
-        df_cssm = df[df["MemType"] == "CSSM"]
         if uploaded is not None:
-            st.dataframe(df_cssm)
+            df_cssm = df[df["MemType"] == "CSSM"]
+            if uploaded is not None:
+                st.dataframe(df_cssm)
