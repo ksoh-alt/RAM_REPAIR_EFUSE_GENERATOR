@@ -20,7 +20,7 @@ st.set_page_config(
 st.sidebar.title("📚 Sections")
 sections = [
     "EFUSE Generator",
-    "LVLIB Reader",
+    "Summary File Reader",
 ]
 
 # Attempt to read query param for section (supports both new and legacy APIs)
@@ -252,8 +252,8 @@ if section == "EFUSE Generator":
 # -------------------------------------------------------------
 # SECTION: LVLIB Reader
 # -------------------------------------------------------------
-if section == "LVLIB Reader":
-    st.title("LVLIB Reader")
+if section == "Summary File Reader":
+    st.title("Summary File Reader")
     #st.header("Use this apps to generate ARRAY Ram Efuse Hex for repair simulation")
     
 
