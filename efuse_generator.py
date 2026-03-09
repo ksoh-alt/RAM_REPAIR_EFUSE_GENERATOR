@@ -491,43 +491,43 @@ if section == "LVLIB Reader":
         return df[preferred_cols] if not df.empty else df
 
         # (Paste the two functions: parse_summary_file_from_string, flatten_summary_to_df)
-        st.subheader("Upload the Summary File")
-        uploaded = st.file_uploader("Upload summary .summary", type=["summary"])
-        
-        if uploaded:
-            raw = uploaded.read()
-            text = None
-            for enc in ("utf-8-sig", "utf-8", "latin-1"):
-                try:
-                    text = raw.decode(enc)
-                    break
-                except Exception:
-                    continue
-            if text is None:
-                st.error("Failed to decode file. Try UTF-8 encoding.")
-                st.stop()
-        
-            with st.spinner("Parsing..."):
-                summary = parse_summary_file_from_string(text)
-        
-            with st.spinner("Flattening..."):
-                df = flatten_summary_to_df(summary)
-        
-            if df.empty:
-                st.warning("Parsed successfully, but no rows found (no MemoryCollar blocks?).")
-            else:
-                st.success(f"Flattened rows: {len(df)}")
-                st.dataframe(df, use_container_width=True)
-        
-                # Export
-                col1, col2 = st.columns(2)
-                with col1:
-                    csv = df.to_csv(index=False).encode("utf-8")
-                    st.download_button("⬇️ Download CSV", csv, "flattened.csv", "text/csv")
-                with col2:
-                    try:
-                        xlsx = df.to_excel(index=False, engine="openpyxl")
-                    except Exception:
-                        # Streamlit cloud sometimes lacks openpyxl; fallback to CSV only
-                        pass
+    st.subheader("Upload the Summary File")
+    uploaded = st.file_uploader("Upload summary .summary", type=["summary"])
     
+    if uploaded:
+        raw = uploaded.read()
+        text = None
+        for enc in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                text = raw.decode(enc)
+                break
+            except Exception:
+                continue
+        if text is None:
+            st.error("Failed to decode file. Try UTF-8 encoding.")
+            st.stop()
+    
+        with st.spinner("Parsing..."):
+            summary = parse_summary_file_from_string(text)
+    
+        with st.spinner("Flattening..."):
+            df = flatten_summary_to_df(summary)
+    
+        if df.empty:
+            st.warning("Parsed successfully, but no rows found (no MemoryCollar blocks?).")
+        else:
+            st.success(f"Flattened rows: {len(df)}")
+            st.dataframe(df, use_container_width=True)
+    
+            # Export
+            col1, col2 = st.columns(2)
+            with col1:
+                csv = df.to_csv(index=False).encode("utf-8")
+                st.download_button("⬇️ Download CSV", csv, "flattened.csv", "text/csv")
+            with col2:
+                try:
+                    xlsx = df.to_excel(index=False, engine="openpyxl")
+                except Exception:
+                    # Streamlit cloud sometimes lacks openpyxl; fallback to CSV only
+                    pass
+
