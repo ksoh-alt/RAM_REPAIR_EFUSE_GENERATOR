@@ -70,7 +70,8 @@ if section == "EFUSE Generator":
         st.subheader("LSMMBIST")
         st.subheader("RAMID")
         df_lsm = df[df["MemType"] == "LSM"]
-        st.dataframe(df_lsm)
+        if uploaded is not None:
+            st.dataframe(df_lsm)
 
     elif sb == "IOSSMMBIST":
         st.subheader("IOSSMBIST")
@@ -80,11 +81,13 @@ if section == "EFUSE Generator":
             df_iossm = df[df["MemType"] == "IOSSMCFG"]
         else: 
             df_iossm = df[df["MemType"] == "IOSSMCAL"]
-        st.dataframe(df_iossm)
+        if uploaded is not None:
+            st.dataframe(df_iossm)
         
     elif sb == "CSSMMBIST":
         st.subheader("CSSMMBIST")
         cssm_choice = st.radio("Pick one", ["CSSM HIP2C", "CSSM CNT", "CSSM DVP"], index=0)
         st.subheader("RAMID")
         df_cssm = df[df["MemType"] == "CSSM"]
-        st.dataframe(df_cssm)
+        if uploaded is not None:
+            st.dataframe(df_cssm)
