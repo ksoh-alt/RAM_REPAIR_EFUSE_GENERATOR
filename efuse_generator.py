@@ -128,17 +128,119 @@ if section == "EFUSE Generator":
         st.subheader("IOSSMBIST")
         iossm_choice = st.radio("Pick one", ["IOSSMCFG", "IOSSMCAL Serial Channel 0", "IOSSMCAL Serial Channel 1"], index=0)
         st.subheader("RAMID")
-        if uploaded is not None:
-            if iossm_choice == "IOSSMCFG":
-                df_iossm = df[df["MemType"] == "IOSSMCFG"]
-            else: 
-                df_iossm = df[df["MemType"] == "IOSSMCAL"]
-            st.dataframe(df_iossm)
+        #if uploaded is not None:
+         #   if iossm_choice == "IOSSMCFG":
+          #      df_iossm = df[df["MemType"] == "IOSSMCFG"]
+           # else: 
+            #    df_iossm = df[df["MemType"] == "IOSSMCAL"]
+        if uploaded is None:
+            st.info("Please upload a CSV first.")
+        else:
+            # 1) Filter to MemType == 'LSM'
+            if "MemType" not in df.columns or "CJTAGID" not in df.columns:
+                st.error("The CSV must contain 'MemType' and 'CJTAGID' columns.")
+            else:
+                # Normalize columns to be safe
+                df["MemType"] = df["MemType"].astype("string").str.strip()
+                df["CJTAGID"] = df["CJTAGID"].astype("string").str.strip()
+                if iossm_choice == "IOSSMCFG" :
+                    df_iossm = df[df["MemType"] == "IOSSMCFG"]
+                else:
+                    df_iossm = df[df["MemType"] == "IOSSMCAL"]
+                    
+                if df_iossm.empty:
+                    st.warning("No rows found with MemType == 'LSM'.")
+                else:
+                    # 2) Build unique CJTAGID list (drop NaN/empty)
+                    cjtagid_iossm = (
+                        df_iossm["CJTAGID"]
+                        .replace("", pd.NA)
+                        .dropna()
+                        .drop_duplicates()
+                        .tolist()
+                    )
+    
+                    if not cjtagid_iossm:
+                        st.warning("No valid CJTAGID found under MemType == 'IOSSM'.")
+                    else:
+                        # Optional: sort for nicer UX
+                        cjtagid_iossm = sorted(cjtagid_iossm, key=lambda x: x.casefold())
+    
+                        # 3) Safe default index
+                        default_index = 0  # use 0 to avoid IndexError when only one value exists
+    
+                        sb_cjtagidiossm = st.selectbox(
+                            "Select CJTAGID",
+                            cjtagid_iossm,
+                            index=default_index,
+                            key="select_cjtagid_lsm"
+                        )
+    
+                        # 4) Apply correct filter: MemType == 'LSM' AND CJTAGID == selected
+                        df_iossm_cjtagid = df_iossm[df_iossm["CJTAGID"] == sb_cjtagidiossm]
+    
+                        # (Optional) If you want to be extra safe case-insensitively:
+                        # df_lsm_cjtagid = df_lsm[df_lsm["CJTAGID"].str.casefold() == sb_cjtagidlsm.casefold()]
+    
+                        st.subheader("Filtered Rows")
+                        st.dataframe(df_iossm_cjtagid, use_container_width=True)
+    
+                        # Optional: show count
+                        st.caption(f"Matched rows: {len(df_iossm_cjtagid)}")
         
     elif sb == "CSSMMBIST":
         st.subheader("CSSMMBIST")
         cssm_choice = st.radio("Pick one", ["CSSM HIP2C", "CSSM CNT", "CSSM DVP"], index=0)
         st.subheader("RAMID")
-        if uploaded is not None:
-            df_cssm = df[df["MemType"] == "CSSM"]
-            st.dataframe(df_cssm)
+        if uploaded is None:
+            st.info("Please upload a CSV first.")
+        else:
+            # 1) Filter to MemType == 'LSM'
+            if "MemType" not in df.columns or "CJTAGID" not in df.columns:
+                st.error("The CSV must contain 'MemType' and 'CJTAGID' columns.")
+            else:
+                # Normalize columns to be safe
+                df["MemType"] = df["MemType"].astype("string").str.strip()
+                df["CJTAGID"] = df["CJTAGID"].astype("string").str.strip()
+    
+                df_cssm = df[df["MemType"] == "CSSM"]
+    
+                if df_cssm.empty:
+                    st.warning("No rows found with MemType == 'CSSM'.")
+                else:
+                    # 2) Build unique CJTAGID list (drop NaN/empty)
+                    cjtagid_cssm = (
+                        df_cssm["CJTAGID"]
+                        .replace("", pd.NA)
+                        .dropna()
+                        .drop_duplicates()
+                        .tolist()
+                    )
+    
+                    if not cjtagid_cssm:
+                        st.warning("No valid CJTAGID found under MemType == 'CSSM'.")
+                    else:
+                        # Optional: sort for nicer UX
+                        cjtagid_cssm = sorted(cjtagid_cssm, key=lambda x: x.casefold())
+    
+                        # 3) Safe default index
+                        default_index = 0  # use 0 to avoid IndexError when only one value exists
+    
+                        sb_cjtagidcssm = st.selectbox(
+                            "Select CJTAGID",
+                            cjtagid_cssm,
+                            index=default_index,
+                            key="select_cjtagid_cssm"
+                        )
+    
+                        # 4) Apply correct filter: MemType == 'LSM' AND CJTAGID == selected
+                        df_cssm_cjtagid = df_cssm[df_cssm["CJTAGID"] == sb_cjtagidcssm]
+    
+                        # (Optional) If you want to be extra safe case-insensitively:
+                        # df_lsm_cjtagid = df_lsm[df_lsm["CJTAGID"].str.casefold() == sb_cjtagidlsm.casefold()]
+    
+                        st.subheader("Filtered Rows")
+                        st.dataframe(df_cssm_cjtagid, use_container_width=True)
+    
+                        # Optional: show count
+                        st.caption(f"Matched rows: {len(df_cssm_cjtagid)}")
