@@ -469,8 +469,8 @@ def decode_efuse(bits, module):
         "Lower Redundancy Enable": lower_enable,
         "Lower Faulty Column": lower_fault if lower_enable else "Disabled",
 
-        "RAM BLOCK ID": block_id
-        "CJTAGID": lookup_cjtag(selected_device, block_id)
+        "RAM BLOCK ID": block_id,
+        "CJTAGID": lookup_cjtag(selected_device, block_id),
     }
 
 
