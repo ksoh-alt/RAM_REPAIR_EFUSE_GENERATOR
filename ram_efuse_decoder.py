@@ -111,9 +111,9 @@ MODULE_SPECS = {
     },
 
     # ----------------------------
-    # IOSSMCAL CH0 MODULE - ip756uhdsp11rf_1024x39m4b1wd_cnnnnnnlc
+    # IOSSMCAL CH1 MODULE - ip756uhdsp11rf_1024x39m4b1wd_cnnnnnnlc
     # ----------------------------
-    "IOSSMCAL CH0": {
+    "IOSSMCAL CH1": {
         "lower": {
             # fuse_code : faulty_column_index
             18: 0,
@@ -161,9 +161,9 @@ MODULE_SPECS = {
     },
 
     # ----------------------------
-    # IOSSMCAL CH1 MODULE - ip756uhdsp11rf_2048x39m4b2wd_cnnnnnnlc
+    # IOSSMCAL CH0 MODULE - ip756uhdsp11rf_2048x39m4b2wd_cnnnnnnlc
     # ----------------------------
-    "IOSSMCAL CH1": {
+    "IOSSMCAL CH0": {
         "lower": {
             # fuse_code : faulty_column_index
             18: 0,
