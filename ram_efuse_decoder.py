@@ -1,6 +1,30 @@
 import streamlit as st
 import pandas as pd
-
+# ---------------------------------------------------------
+# DEVICE-SPECIFIC CJTAGID MAPS
+# ---------------------------------------------------------
+CJTAG_MAP_SM7 = [
+    (1, 12, 32),
+    (13, 16, 33),
+    (17, 20, 34),
+    (21, 24, 35),
+    (25, 27, 36),
+    (28, 92, 37),
+    (93, 96, 38),
+    (97, 100, 39),
+    (101, 104, 40),
+    (105, 107, 41),
+    (108, 172, 42),
+    (173, 175, 43),
+    (176, 240, 44),
+    (241, 244, 45),
+    (245, 248, 46),
+    (249, 252, 47),
+    (253, 255, 48),
+    (256, 320, 49),
+    (321, 332, 50),
+    (333, 344, 51),
+]
 # ---------------------------------------------------------
 # MODULE-SPECIFIC REDUNDANCY MAPS
 # ---------------------------------------------------------
@@ -396,6 +420,25 @@ def parse_input(value_str):
             return None
 
     return None
+    
+# ---------------------------------------------------------
+# Helper: CJTAGID LOOKUP
+# ---------------------------------------------------------
+def lookup_cjtag(selected_device, ram_block_id):
+    if selected_device == "SM7":
+        for lo, hi, cid in CJTAG_MAP_SM7:
+            if lo <= ram_block_id <= hi:
+                return cid
+        return "Out of Range"
+
+    # Placeholder for other devices
+    if selected_device == "SM4":
+        return "Not Implemented"
+
+    if selected_device == "SM1":
+        return "Not Implemented"
+
+    return "Unknown Device"
 
 # ---------------------------------------------------------
 # Main decoder (module-aware)
@@ -426,7 +469,8 @@ def decode_efuse(bits, module):
         "Lower Redundancy Enable": lower_enable,
         "Lower Faulty Column": lower_fault if lower_enable else "Disabled",
 
-        "RAM BLOCK ID / CJTAG ID": block_id
+        "RAM BLOCK ID": block_id
+        "CJTAGID": lookup_cjtag(selected_device, block_id)
     }
 
 
@@ -437,6 +481,8 @@ st.set_page_config(page_title="eFuse Decoder", layout="wide")
 st.title("🔥 Multi‑Module eFuse Decoder")
 
 # Module selector
+device_list = ["SM7"]
+selected_device = st.selectbox("Select Device:", device_list)
 module_list = list(MODULE_SPECS.keys())
 selected_module = st.selectbox("Select Module:", module_list)
 
