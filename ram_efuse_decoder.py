@@ -536,7 +536,7 @@ if decode_btn:
                 st.markdown(
                     f"""
                     <div style="
-                        background-color:#f0f0f0;
+                        background-color:#ABABAB;
                         padding:12px;
                         border-radius:10px;
                         text-align:center;
