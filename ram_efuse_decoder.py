@@ -498,7 +498,7 @@ st.set_page_config(page_title="eFuse Decoder", layout="wide")
 st.title("🔥 Multi‑Module eFuse Decoder")
 
 # Module selector
-device_list = ["SM7"]
+device_list = ["SM7", "SM5"]
 selected_device = st.selectbox("Select Device:", device_list)
 module_list = list(MODULE_SPECS.keys())
 selected_module = st.selectbox("Select Module:", module_list)
