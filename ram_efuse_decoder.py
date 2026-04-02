@@ -25,6 +25,20 @@ CJTAG_MAP_SM7 = [
     (321, 332, 50),
     (333, 344, 51),
 ]
+
+CJTAG_MAP_SM5 = [
+    (1, 12, 32),
+    (13, 16, 33),
+    (17, 20, 34),
+    (21, 23, 35),
+    (24, 88, 36),
+    (89, 92, 37),
+    (93, 96, 38),
+    (97, 99, 39),
+    (100, 164, 40),
+    (165, 176, 41),
+    (177, 188, 42),
+]
 # ---------------------------------------------------------
 # MODULE-SPECIFIC REDUNDANCY MAPS
 # ---------------------------------------------------------
@@ -432,8 +446,11 @@ def lookup_cjtag(selected_device, ram_block_id):
         return "Out of Range"
 
     # Placeholder for other devices
-    if selected_device == "SM4":
-        return "Not Implemented"
+    if selected_device == "SM5":
+        for lo, hi, cid in CJTAG_MAP_SM5:
+            if lo <= ram_block_id <= hi:
+                return cid
+        return "Out of Range"
 
     if selected_device == "SM1":
         return "Not Implemented"
