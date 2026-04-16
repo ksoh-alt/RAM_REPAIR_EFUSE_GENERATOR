@@ -9,7 +9,8 @@ A collection of Streamlit tools for semiconductor test-flow analysis and eFuse g
 | File | Description |
 |---|---|
 | `efuse_generator.py` | eFuse hex generator and Summary File Reader |
-| `app.py` | **PList → CSV Generator** (parse `GlobalPList` blocks into a test-input CSV) |
+| `app.py` | **PList → CSV Generator** (parse `GlobalPList` blocks into a 12-column test-input CSV) |
+| `app_v2.py` | **PList → CSV Generator V2** (20-column schema with user-configurable TestStep, mode, vectype) |
 | `streamlit_app.py` | Streamlit beginner guide / demo |
 
 ---
@@ -41,6 +42,30 @@ streamlit run efuse_generator.py
 3. (Optional) Enable **Hard Tuple ID** in the sidebar.
 4. Click **Generate CSV** to parse the file.
 5. Review the preview table, then download the CSV.
+
+---
+
+## PList → CSV Generator V2 (`app_v2.py`)
+
+Extended 20-column schema with user-configurable `TestStep`, `mode`, and `vectype` values.
+TestName entries always include a `.stil` suffix, and loop markers use the `patopt[…]` format.
+
+> `Opt-out` · `TestStep` · `Module` · `TestName` · `SOF FileName` · `Sof2Vec Option` · `Zip` · `VMPREFIX` · `Plist` · `GlobalPlist` · `vrev` · `mode` · `vectype` · `Optional Switches` · `Hard Tuple ID` · `HDBI_vrev` · `HDBI_mode` · `HDBI_vectype` · `HDBI_Optional Switches` · `HDBI_Hard Tuple ID`
+
+### Run locally
+
+```bash
+streamlit run app_v2.py
+```
+
+### Usage
+
+1. Upload a `.txt` file containing `GlobalPList` blocks.
+2. (Optional) Override the filename used to derive the `Plist` column.
+3. Configure **TestStep** (default `FT`), **mode** (default `jecahpshec`), and **vectype** (default `hvm100`) in the sidebar.
+4. (Optional) Enable **Hard Tuple ID** in the sidebar.
+5. Click **Generate CSV** to parse the file.
+6. Review the preview table, then download the CSV.
 
 ---
 

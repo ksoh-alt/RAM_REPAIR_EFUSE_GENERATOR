@@ -6,7 +6,11 @@ Reusable parsing logic for GlobalPList test-input files.
 Exposes:
     parse_plist_text(text, input_filename, hard_tupleid_en) -> (rows, warnings)
     rows_to_csv_bytes(rows) -> bytes
-    FIELDNAMES  – ordered list of CSV column names
+    FIELDNAMES  – ordered list of CSV column names (12 columns, V1)
+
+    parse_plist_text_v2(text, input_filename, ...) -> (rows, warnings)
+    rows_to_csv_bytes_v2(rows) -> bytes
+    FIELDNAMES_V2  – ordered list of CSV column names (20 columns, V2)
 """
 
 import re
@@ -43,6 +47,32 @@ FIELDNAMES: List[str] = [
 ]
 
 # ---------------------------------------------------------------------------
+# CSV column order for V2 (20-column schema)
+# ---------------------------------------------------------------------------
+FIELDNAMES_V2: List[str] = [
+    "Opt-out",
+    "TestStep",
+    "Module",
+    "TestName",
+    "SOF FileName",
+    "Sof2Vec Option",
+    "Zip",
+    "VMPREFIX",
+    "Plist",
+    "GlobalPlist",
+    "vrev",
+    "mode",
+    "vectype",
+    "Optional Switches",
+    "Hard Tuple ID",
+    "HDBI_vrev",
+    "HDBI_mode",
+    "HDBI_vectype",
+    "HDBI_Optional Switches",
+    "HDBI_Hard Tuple ID",
+]
+
+# ---------------------------------------------------------------------------
 # Compiled regular expressions
 # ---------------------------------------------------------------------------
 _GLOBAL_PLIST_RE = re.compile(r"^GlobalPList\s+(\S+)_PLIST", re.IGNORECASE)
@@ -51,6 +81,9 @@ _PAT_RE = re.compile(r"^\s*Pat\s+(\S+?);")
 _LOOP_START_RE = re.compile(r"\[LoopStart[^\]]*\]|\(LoopStart[^)]*\)", re.IGNORECASE)
 _LOOP_REPEAT_RE = re.compile(r"\[LoopRepeat[^\]]*\]|\(LoopRepeat[^)]*\)", re.IGNORECASE)
 _LOOP_END_RE = re.compile(r"\[LoopEnd[^\]]*\]|\(LoopEnd[^)]*\)", re.IGNORECASE)
+_LOOP_REPEAT_COUNT_RE = re.compile(
+    r"\[LoopRepeat[\s:]+(\d+)\]|\(LoopRepeat[\s:]+(\d+)\)", re.IGNORECASE
+)
 _BRACKET_TAG_RE = re.compile(r"\[[^\]]*\]|\([^)]*\)")
 
 
@@ -287,6 +320,257 @@ def _process_pat(
         "vectype": vectype,
         "Optional Switches": optional_switches,
         "Hard Tuple ID": hard_tuple_id,
+    }
+
+    return row, warn_msgs
+
+
+# ---------------------------------------------------------------------------
+# V2 Public API
+# ---------------------------------------------------------------------------
+
+def parse_plist_text_v2(
+    text: str,
+    input_filename: str,
+    hard_tupleid_en: bool = False,
+    test_step: str = "FT",
+    mode: str = "jecahpshec",
+    vectype: str = "hvm100",
+) -> Tuple[List[Dict], List[str]]:
+    """Parse GlobalPList block text with the V2 20-column schema.
+
+    Key differences from :func:`parse_plist_text`:
+
+    * ``test_step``, ``mode``, and ``vectype`` are user-provided strings
+      (not derived from the Pat name).
+    * ``TestName`` always has a ``.stil`` suffix.
+    * Loop markers produce ``patopt[LoopStart] [LoopRepeat N]`` or
+      ``patopt[LoopEnd]`` in the *Optional Switches* column.
+    * Eight additional placeholder columns are emitted (see
+      ``FIELDNAMES_V2``).
+
+    Args:
+        text:             Full content of the input ``.txt`` file.
+        input_filename:   Name of the uploaded file (used to derive the
+                          ``Plist`` column value).
+        hard_tupleid_en:  Populate the ``Hard Tuple ID`` column.
+        test_step:        Value for the ``TestStep`` column (default ``"FT"``).
+        mode:             Value for the ``mode`` column (default
+                          ``"jecahpshec"``).
+        vectype:          Value for the ``vectype`` column (default
+                          ``"hvm100"``).
+
+    Returns:
+        ``(rows, warnings)`` – same contract as :func:`parse_plist_text`.
+    """
+    rows: List[Dict] = []
+    warn_msgs: List[str] = []
+
+    # Derive plist from the input filename (same logic as V1).
+    base_name = input_filename.rsplit(".", 1)[0]
+    fname_tokens = base_name.split("_")
+    if len(fname_tokens) >= 3:
+        plist = "_".join(fname_tokens[1:3]) + ".plist"
+    elif len(fname_tokens) == 2:
+        plist = fname_tokens[1] + ".plist"
+        warn_msgs.append(
+            f"Filename '{input_filename}' has only 2 '_'-delimited tokens; "
+            f"Plist derived as '{plist}'."
+        )
+    else:
+        plist = base_name + ".plist"
+        warn_msgs.append(
+            f"Filename '{input_filename}' has no '_' delimiter; "
+            f"Plist set to '{plist}'."
+        )
+
+    current_block: Optional[Tuple[str, str, str]] = None
+    nested_plists: List[str] = []
+    in_block: bool = False
+    brace_depth: int = 0
+
+    for lineno, raw_line in enumerate(text.splitlines(), start=1):
+        line = raw_line.strip()
+
+        # Detect the start of a GlobalPList block
+        m = _GLOBAL_PLIST_RE.match(line)
+        if m:
+            block_name = m.group(1)
+            parts = block_name.split("_")
+            module = parts[0] if parts else ""
+            zip_val = ("W_" + parts[1] + "_F.ZIP") if len(parts) > 1 else ""
+            global_plist = "_".join(parts[2:]) if len(parts) > 2 else ""
+            current_block = (module, zip_val, global_plist)
+            nested_plists = []
+            in_block = True
+            brace_depth = line.count("{") - line.count("}")
+            if brace_depth < 0:
+                brace_depth = 0
+            continue
+
+        if not in_block or current_block is None:
+            continue
+
+        # Track brace depth
+        brace_depth += line.count("{") - line.count("}")
+        if brace_depth <= 0:
+            in_block = False
+            current_block = None
+            nested_plists = []
+            brace_depth = 0
+            continue
+
+        # Nested PList line
+        pm = _NESTED_PLIST_RE.match(line)
+        if pm:
+            plist_name = pm.group(1).rstrip("{").strip()
+            if plist_name:
+                nested_plists.append(plist_name)
+            continue
+
+        # Pat entry
+        patm = _PAT_RE.match(line)
+        if patm:
+            pat_name = patm.group(1)
+            row, pat_warns = _process_pat_v2(
+                pat_name=pat_name,
+                block_info=current_block,
+                plist=plist,
+                nested_plists=list(nested_plists),
+                hard_tupleid_en=hard_tupleid_en,
+                test_step=test_step,
+                mode=mode,
+                vectype=vectype,
+                lineno=lineno,
+            )
+            warn_msgs.extend(pat_warns)
+            if row is not None:
+                rows.append(row)
+            nested_plists.clear()
+
+    return rows, warn_msgs
+
+
+def rows_to_csv_bytes_v2(rows: List[Dict]) -> bytes:
+    """Convert V2 row dicts to UTF-8 encoded CSV bytes.
+
+    Column order follows ``FIELDNAMES_V2``.
+    """
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=FIELDNAMES_V2, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(rows)
+    return buf.getvalue().encode("utf-8")
+
+
+# ---------------------------------------------------------------------------
+# V2 internal helper
+# ---------------------------------------------------------------------------
+
+def _process_pat_v2(
+    pat_name: str,
+    block_info: Tuple[str, str, str],
+    plist: str,
+    nested_plists: List[str],
+    hard_tupleid_en: bool,
+    test_step: str,
+    mode: str,
+    vectype: str,
+    lineno: int,
+) -> Tuple[Optional[Dict], List[str]]:
+    """Process a single Pat entry for the V2 schema.
+
+    Unlike ``_process_pat``, mode and vectype come from the caller (not
+    derived from the Pat name), TestName gets a ``.stil`` suffix, and
+    loop markers produce ``patopt[…]`` style Optional Switches.
+    """
+    module, zip_val, global_plist = block_info
+    warn_msgs: List[str] = []
+
+    fields = pat_name.split("_")
+
+    # Find the "W" token
+    try:
+        w_index = fields.index("W")
+    except ValueError:
+        warn_msgs.append(
+            f"Line {lineno}: No 'W' token found in Pat name '{pat_name}'; skipping."
+        )
+        return None, warn_msgs
+
+    # vrev – absolute index 4
+    if len(fields) > 4:
+        vrev = "vrev" + str(fields[4])[:MAX_VREV_DIGITS]
+    else:
+        vrev = ""
+        warn_msgs.append(
+            f"Line {lineno}: Pat '{pat_name}' has fewer than 5 fields; "
+            "vrev will be empty."
+        )
+
+    # Build test_name from w_index onward; detect loop tags
+    test_name_parts: List[str] = list(fields[w_index:])
+    optional_switches = ""
+
+    if test_name_parts:
+        last = test_name_parts[-1]
+        if _LOOP_START_RE.search(last):
+            # Extract repeat count from LoopRepeat tag if present
+            repeat_match = _LOOP_REPEAT_COUNT_RE.search(last)
+            repeat_n = (repeat_match.group(1) or repeat_match.group(2)) if repeat_match else ""
+            if repeat_n:
+                optional_switches = f"patopt[LoopStart] [LoopRepeat {repeat_n}]"
+            else:
+                optional_switches = "patopt[LoopStart]"
+            cleaned = _BRACKET_TAG_RE.sub("", last).strip("_").strip()
+            test_name_parts[-1] = cleaned
+        elif _LOOP_REPEAT_RE.search(last):
+            repeat_match = _LOOP_REPEAT_COUNT_RE.search(last)
+            repeat_n = (repeat_match.group(1) or repeat_match.group(2)) if repeat_match else ""
+            if repeat_n:
+                optional_switches = f"patopt[LoopStart] [LoopRepeat {repeat_n}]"
+            else:
+                optional_switches = "patopt[LoopStart] [LoopRepeat]"
+            cleaned = _BRACKET_TAG_RE.sub("", last).strip("_").strip()
+            test_name_parts[-1] = cleaned
+        elif _LOOP_END_RE.search(last):
+            optional_switches = "patopt[LoopEnd]"
+            cleaned = _BRACKET_TAG_RE.sub("", last).strip("_").strip()
+            test_name_parts[-1] = cleaned
+
+        # Drop any trailing empty parts produced by cleaning
+        while test_name_parts and not test_name_parts[-1]:
+            test_name_parts.pop()
+
+    test_name = "_".join(test_name_parts) + ".stil"
+
+    # VMPREFIX
+    vmprefix = " ".join(nested_plists)
+
+    # Hard Tuple ID
+    hard_tuple_id = fields[0][:HARD_TUPLE_ID_LENGTH] if hard_tupleid_en and fields else ""
+
+    row: Dict = {
+        "Opt-out": "",
+        "TestStep": test_step,
+        "Module": module,
+        "TestName": test_name,
+        "SOF FileName": "",
+        "Sof2Vec Option": "",
+        "Zip": zip_val,
+        "VMPREFIX": vmprefix,
+        "Plist": plist,
+        "GlobalPlist": global_plist,
+        "vrev": vrev,
+        "mode": mode,
+        "vectype": vectype,
+        "Optional Switches": optional_switches,
+        "Hard Tuple ID": hard_tuple_id,
+        "HDBI_vrev": "",
+        "HDBI_mode": "",
+        "HDBI_vectype": "",
+        "HDBI_Optional Switches": "",
+        "HDBI_Hard Tuple ID": "",
     }
 
     return row, warn_msgs
