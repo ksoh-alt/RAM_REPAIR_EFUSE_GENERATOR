@@ -15,6 +15,16 @@ import io
 from typing import Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
+# Tuning constants
+# ---------------------------------------------------------------------------
+
+#: Number of characters taken from the vrev source field.
+MAX_VREV_DIGITS: int = 4
+
+#: Number of leading characters used for the Hard Tuple ID column.
+HARD_TUPLE_ID_LENGTH: int = 8
+
+# ---------------------------------------------------------------------------
 # CSV column order (must match original DictWriter fieldnames exactly)
 # ---------------------------------------------------------------------------
 FIELDNAMES: List[str] = [
@@ -225,7 +235,7 @@ def _process_pat(
 
     # vrev – absolute index 4
     if len(fields) > 4:
-        vrev = "vrev" + str(fields[4])[:4]
+        vrev = "vrev" + str(fields[4])[:MAX_VREV_DIGITS]
     else:
         vrev = ""
         warn_msgs.append(
@@ -262,7 +272,7 @@ def _process_pat(
     vmprefix = " ".join(nested_plists)
 
     # Hard Tuple ID – first 8 chars of the first field (when enabled)
-    hard_tuple_id = fields[0][:8] if hard_tupleid_en and fields else ""
+    hard_tuple_id = fields[0][:HARD_TUPLE_ID_LENGTH] if hard_tupleid_en and fields else ""
 
     row: Dict = {
         "TestStep": test_step,

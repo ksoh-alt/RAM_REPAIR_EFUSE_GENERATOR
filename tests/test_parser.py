@@ -15,7 +15,7 @@ Key scenarios:
 """
 
 import pytest
-from plist_parser import FIELDNAMES, parse_plist_text, rows_to_csv_bytes
+from plist_parser import FIELDNAMES, HARD_TUPLE_ID_LENGTH, MAX_VREV_DIGITS, parse_plist_text, rows_to_csv_bytes
 
 
 # ---------------------------------------------------------------------------
@@ -190,14 +190,15 @@ class TestLoopEnd:
 class TestHardTupleID:
     def test_enabled_returns_first_8_chars(self):
         rows, _ = parse_plist_text(BASIC_INPUT, BASIC_FILENAME, hard_tupleid_en=True)
-        # fields[0] = "HARDID01" (exactly 8 chars)
+        # fields[0] = "HARDID01" (exactly HARD_TUPLE_ID_LENGTH chars)
         assert rows[0]["Hard Tuple ID"] == "HARDID01"
+        assert len(rows[0]["Hard Tuple ID"]) == HARD_TUPLE_ID_LENGTH
 
     def test_enabled_truncates_to_8(self):
         long_id = "LONGIDENTIFIER"
         text = _single_block(f"{long_id}_MOD_W_WAFER_0123_mode_vtype")
         rows, _ = parse_plist_text(text, BASIC_FILENAME, hard_tupleid_en=True)
-        assert rows[0]["Hard Tuple ID"] == long_id[:8]
+        assert rows[0]["Hard Tuple ID"] == long_id[:HARD_TUPLE_ID_LENGTH]
 
     def test_disabled_returns_empty(self):
         rows, _ = parse_plist_text(BASIC_INPUT, BASIC_FILENAME, hard_tupleid_en=False)
@@ -227,13 +228,10 @@ class TestSequentialTestStep:
 
 class TestEdgeCases:
     def test_no_w_token_skipped_with_warning(self):
-        text = _single_block("NODASH_PATTERN_WITHOUT_W_TOKEN".replace("_W_", "_X_"))
+        text = "GlobalPList MOD_WAFER_CHIP_PLIST {\n    Pat NOID_NMOD_X_CHIP_0123;\n}\n"
         rows, warns = parse_plist_text(text, BASIC_FILENAME)
-        # Pattern above still has a different structure; build one explicitly
-        text2 = "GlobalPList MOD_WAFER_CHIP_PLIST {\n    Pat NOID_NMOD_X_CHIP_0123;\n}\n"
-        rows2, warns2 = parse_plist_text(text2, BASIC_FILENAME)
-        assert rows2 == []
-        assert any("W" in w or "skipping" in w for w in warns2)
+        assert rows == []
+        assert any("W" in w or "skipping" in w for w in warns)
 
     def test_empty_input_no_rows(self):
         rows, _ = parse_plist_text("", BASIC_FILENAME)
