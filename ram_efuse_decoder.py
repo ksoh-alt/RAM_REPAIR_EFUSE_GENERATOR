@@ -3,6 +3,58 @@ import pandas as pd
 # ---------------------------------------------------------
 # DEVICE-SPECIFIC CJTAGID MAPS
 # ---------------------------------------------------------
+CJTAG_MAP_FMM2 = [
+    (1, 12, 32), 
+    (13, 16, 33), 
+    (17, 20, 34), 
+    (21, 24, 35), 
+    (25, 28, 36), 
+    (29, 32, 37), 
+    (33, 36, 38), 
+    (37, 39, 39), 
+    (40, 104, 40), 
+    (105, 108, 41), 
+    (109, 112, 42), 
+    (113, 116, 43), 
+    (117, 120, 44), 
+    (121, 124, 45), 
+    (125, 128, 46), 
+    (129, 131, 47), 
+    (132, 196, 48), 
+    (197, 199, 49), 
+    (200, 264, 50), 
+    (265, 268, 51), 
+    (269, 272, 52), 
+    (273, 276, 53), 
+    (277, 280, 54), 
+    (281, 284, 55), 
+    (285, 288, 56), 
+    (289, 291, 57), 
+    (292, 356, 58), 
+    (357, 359, 59), 
+    (360, 424, 60), 
+    (425, 428, 61), 
+    (429, 432, 62), 
+    (433, 436, 63), 
+    (437, 440, 64), 
+    (441, 444, 65), 
+    (445, 448, 66), 
+    (449, 451, 67), 
+    (452, 516, 68), 
+    (517, 519, 69), 
+    (520, 584, 70), 
+    (585, 588, 71), 
+    (589, 592, 72), 
+    (593, 596, 73), 
+    (597, 600, 74), 
+    (601, 604, 75), 
+    (605, 608, 76), 
+    (609, 611, 77), 
+    (612, 676, 78), 
+    (677, 688, 79), 
+    (689, 700, 80),
+]
+
 CJTAG_MAP_SM7 = [
     (1, 12, 32),
     (13, 16, 33),
@@ -439,6 +491,12 @@ def parse_input(value_str):
 # Helper: CJTAGID LOOKUP
 # ---------------------------------------------------------
 def lookup_cjtag(selected_device, ram_block_id):
+    if selected_device == "FMM2":
+        for lo, hi, cid in CJTAG_MAP_FMM2:
+            if lo <= ram_block_id <= hi:
+                return cid
+        return "Out of Range"
+        
     if selected_device == "SM7":
         for lo, hi, cid in CJTAG_MAP_SM7:
             if lo <= ram_block_id <= hi:
@@ -498,7 +556,7 @@ st.set_page_config(page_title="eFuse Decoder", layout="wide")
 st.title("🔥 Multi‑Module eFuse Decoder")
 
 # Module selector
-device_list = ["SM7", "SM5"]
+device_list = ["FMM2", "SM7", "SM5"]
 selected_device = st.selectbox("Select Device:", device_list)
 module_list = list(MODULE_SPECS.keys())
 selected_module = st.selectbox("Select Module:", module_list)
